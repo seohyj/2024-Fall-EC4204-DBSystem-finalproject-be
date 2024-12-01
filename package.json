@@ -1,0 +1,14 @@
+{
+  "name": "2024-fall-ec4204-dbsystem-finalproject-be",
+  "version": "1.0.0",
+  "description": "rainbow-chocolatechip-cookie",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
