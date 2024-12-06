@@ -2,30 +2,30 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-// 라우터 가져오기
+// Import routers
 const userRouter = require("./router/user");
 const reservationRouter = require("./router/reservation");
 const reviewRouter = require("./router/review");
 const teamsRouter = require("./router/teams");
+const reservationTimeRouter = require("./router/reservation_time");
 
 const app = express();
 
-// CORS 설정
+// CORS configuration
 app.use(
   cors({ origin: "*", methods: "GET,POST,PUT,DELETE", credentials: true })
 );
-
-// JSON 파싱 미들웨어
 app.use(bodyParser.json());
 app.use(express.json());
 
-// 라우터 설정
+// Router setup
 app.use("/api/user", userRouter);
 app.use("/api/reservation", reservationRouter);
+app.use("/api/reservation_time", reservationTimeRouter);
 app.use("/api/review", reviewRouter);
 app.use("/api/team", teamsRouter);
 
-// 서버 실행
+// Server startup
 const PORT = 5001;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

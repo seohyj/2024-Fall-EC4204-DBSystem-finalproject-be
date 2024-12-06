@@ -6,6 +6,7 @@ const db = mysql2.createConnection({
   user: "root", // MySQL 사용자 이름
   password: "1234", // MySQL 비밀번호
   database: "ec4204", // 데이터베이스 이름
+  port: "3306",
 });
 
 db.connect((err) => {
