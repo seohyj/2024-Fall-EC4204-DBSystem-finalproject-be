@@ -8,6 +8,7 @@ const reservationRouter = require("./router/reservation");
 const reviewRouter = require("./router/review");
 const teamsRouter = require("./router/teams");
 const reservationTimeRouter = require("./router/reservation_time");
+const searchRouter = require("./router/search");
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use("/api/reservation", reservationRouter);
 app.use("/api/reservation_time", reservationTimeRouter);
 app.use("/api/review", reviewRouter);
 app.use("/api/team", teamsRouter);
+app.use("/api/search", searchRouter);
 
 // Server startup
 const PORT = 5001;
