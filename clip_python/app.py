@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify
 import torch
 import os
 from transformers import CLIPModel, CLIPProcessor
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # 전역 변수로 모델 및 프로세서 선언
 model = None
@@ -13,7 +15,7 @@ processor = None
 def load_image_features(image_path):
     try:
         file_name = os.path.splitext(os.path.basename(image_path))[0]
-        pt_file_path = f"./model/{file_name}.pt"
+        pt_file_path = os.path.abspath(f"./model/{file_name}.pt")
         print(f"Loading image features from: {pt_file_path}")  # 디버깅 로그 추가
         return torch.load(pt_file_path)
     except FileNotFoundError:
@@ -30,6 +32,7 @@ def get_text_embedding():
 
     if not text:
         return jsonify({"error": "Text is required"}), 400
+    print(f"Received text for embedding: {text}")
 
     inputs = processor(text=[text], return_tensors="pt")
     with torch.no_grad():
@@ -42,8 +45,13 @@ def get_text_embedding():
 @app.route("/api/clip/similarity", methods=["POST"])
 def calculate_similarity():
     data = request.json
-    text_embedding = torch.tensor(data.get("textEmbedding"))
-    image_embedding_path = data.get("imageEmbeddingPath")
+    try:
+        text_embedding = torch.tensor(data.get("textEmbedding"))
+        image_embedding_path = data.get("imageEmbeddingPath")
+        print(f"text_embedding: {text_embedding}")
+        print(f"image_embedding_path: {image_embedding_path}")
+    except Exception as e:
+        return jsonify({"error": f"Data processing error: {e}"}), 400
 
     if not text_embedding or not image_embedding_path:
         return jsonify({"error": "Missing data for similarity calculation"}), 400
