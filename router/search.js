@@ -5,7 +5,7 @@ const { query } = require("../module/db");
 const path = require("path");
 
 // Python 서버 URL 설정
-const PYTHON_SERVER_URL = "http://localhost:5002";
+const PYTHON_SERVER_URL = "http://0.0.0.0:5002";
 
 // 이미지 임베딩 로드 함수
 function getImageEmbeddingPath(imagePath) {
@@ -49,10 +49,11 @@ router.post("/", async (req, res) => {
         const imageResponse = await axios.post(
           `${PYTHON_SERVER_URL}/api/clip/similarity`,
           {
-            text_embedding: textEmbedding,
-            image_embedding_path: imageEmbeddingPath,
+            text_embedding: textEmbedding, // Python API의 키와 일치하도록 수정
+            image_embedding_path: imageEmbeddingPath, // Python 서버에서 사용 중인 키 이름
           }
         );
+
         const similarity = imageResponse.data.similarity;
 
         similarities.push({

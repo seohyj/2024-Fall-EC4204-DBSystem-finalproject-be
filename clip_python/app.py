@@ -1,16 +1,27 @@
 from flask import Flask, request, jsonify
 import torch
-import base64
-import io
+import os
+from transformers import CLIPModel, CLIPProcessor
 
 app = Flask(__name__)
 
-# CLIP 모델 로드
-from transformers import CLIPModel, CLIPProcessor
+# 전역 변수로 모델 및 프로세서 선언
+model = None
+processor = None
 
-if __name__ == "__main__":
-    model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+# 이미지 특성 로드 함수
+def load_image_features(image_path):
+    try:
+        file_name = os.path.splitext(os.path.basename(image_path))[0]
+        pt_file_path = f"./model/{file_name}.pt"
+        print(f"Loading image features from: {pt_file_path}")  # 디버깅 로그 추가
+        return torch.load(pt_file_path)
+    except FileNotFoundError:
+        print(f"Error: {pt_file_path} 파일을 찾을 수 없습니다.")
+        return None
+    except Exception as e:
+        print(f"Error loading {pt_file_path}: {e}")
+        return None
 
 @app.route("/api/clip/embedding", methods=["POST"])
 def get_text_embedding():
@@ -32,13 +43,15 @@ def get_text_embedding():
 def calculate_similarity():
     data = request.json
     text_embedding = torch.tensor(data.get("textEmbedding"))
-    image_features_base64 = data.get("imageFeatures")
+    image_embedding_path = data.get("imageEmbeddingPath")
 
-    if not text_embedding or not image_features_base64:
+    if not text_embedding or not image_embedding_path:
         return jsonify({"error": "Missing data for similarity calculation"}), 400
 
-    # Base64로 전달된 이미지 특성 로드
-    image_features = torch.load(io.BytesIO(base64.b64decode(image_features_base64)))
+    # .pt 파일에서 이미지 특성 로드
+    image_features = load_image_features(image_embedding_path)
+    if image_features is None:
+        return jsonify({"error": f"Failed to load image features from {image_embedding_path}"}), 400
 
     # 유사도 계산
     similarity = torch.matmul(text_embedding, image_features.T).item()
@@ -47,4 +60,9 @@ def calculate_similarity():
 
 
 if __name__ == "__main__":
+    # CLIP 모델 로드 (메인 실행 시)
+    model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+    # Flask 서버 실행
     app.run(host="0.0.0.0", port=5002)
