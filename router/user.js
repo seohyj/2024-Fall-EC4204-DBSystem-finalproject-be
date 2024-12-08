@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { query } = require("../module/db"); // db.js에서 query 함수 가져옴
 
-// Login API
+// Login API.
 router.post("/", async (req, res) => {
   const { user_id } = req.body;
 
