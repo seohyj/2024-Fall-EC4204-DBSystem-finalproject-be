@@ -45,26 +45,35 @@ def get_text_embedding():
 @app.route("/api/clip/similarity", methods=["POST"])
 def calculate_similarity():
     data = request.json
+
+    # 클라이언트에서 데이터 가져오기
+    text_embedding_data = data.get("TextEmbedding")
+    image_embedding_path = data.get("imageEmbeddingPath")
+
+    if text_embedding_data is None:
+        return jsonify({"error": "Missing 'TextEmbedding' in the request"}), 400
+
+    if not image_embedding_path:
+        return jsonify({"error": "Missing 'imageEmbeddingPath' in the request"}), 400
+
     try:
-        text_embedding = torch.tensor(data.get("textEmbedding"))
-        image_embedding_path = data.get("imageEmbeddingPath")
+        text_embedding = torch.tensor(text_embedding_data)
         print(f"text_embedding: {text_embedding}")
         print(f"image_embedding_path: {image_embedding_path}")
     except Exception as e:
-        return jsonify({"error": f"Data processing error: {e}"}), 400
-
-    if not text_embedding or not image_embedding_path:
-        return jsonify({"error": "Missing data for similarity calculation"}), 400
+        return jsonify({"error": f"Failed to process text embedding: {e}"}), 400
 
     # .pt 파일에서 이미지 특성 로드
     image_features = load_image_features(image_embedding_path)
     if image_features is None:
         return jsonify({"error": f"Failed to load image features from {image_embedding_path}"}), 400
 
-    # 유사도 계산
-    similarity = torch.matmul(text_embedding, image_features.T).item()
-
-    return jsonify({"similarity": similarity})
+    try:
+        # 유사도 계산
+        similarity = torch.matmul(text_embedding, image_features.T).item()
+        return jsonify({"similarity": similarity})
+    except Exception as e:
+        return jsonify({"error": f"Failed to calculate similarity: {e}"}), 500
 
 
 if __name__ == "__main__":
